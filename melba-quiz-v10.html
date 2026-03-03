@@ -251,67 +251,118 @@
   .res-restart:active { background: #F0EFFE; }
 
   /* ── Intro screen ── */
-  .intro-screen {
-    padding: 48px 24px 48px;
+  /* ── INTRO hero layout ── */
+  .intro-hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #2E2A9E 0%, #5B5AE0 24%, #8A60C8 50%, #C48BAF 72%, #EDCAC4 88%, #FEF5F2 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     animation: fadeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  .intro-eyebrow {
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-    color: #5B5AE0;
-    margin-bottom: 6px;
-  }
-
-  .intro-age {
-    font-size: 11px;
-    font-weight: 500;
-    color: #9999B8;
-    margin-bottom: 20px;
-    letter-spacing: 0.05em;
+  .intro-age-badge {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  .intro-title {
-    font-size: 34px;
-    font-weight: 700;
-    color: #18182B;
-    line-height: 1.15;
-    margin-bottom: 20px;
+  .intro-hero-title {
+    padding: 52px 23px 0;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #FFFFFF;
+    margin: 0;
     letter-spacing: -0.5px;
   }
 
-  .intro-body {
-    font-size: 16px;
-    line-height: 1.7;
-    color: #44445C;
-    margin-bottom: 28px;
-  }
-
-  .steps {
-    list-style: none;
+  .intro-social {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 36px;
+    align-items: center;
+    gap: 5px;
+    margin-top: 28px;
+    padding: 0 18px;
   }
 
-  .steps li {
-    font-size: 15px;
-    font-weight: 500;
-    color: #18182B;
-    line-height: 1.45;
-    padding-left: 28px;
-    position: relative;
+  .intro-social-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0;
   }
 
-  .steps li::before {
-    content: '→';
+  .intro-social-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .intro-social-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-align: center;
+    line-height: 1.28;
+  }
+
+  .intro-stars {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .intro-star {
+    width: 28px;
+    height: 28px;
+    background: radial-gradient(50% 50% at 50% 50%, #FDDC12 0%, #FD926C 100%);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    flex-shrink: 0;
+  }
+
+  .intro-rating {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.28;
+  }
+
+  .intro-cta-wrap {
     position: absolute;
-    left: 0;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 42px);
+    max-width: 354px;
+  }
+
+  .intro-cta-white {
+    width: 100%;
+    height: 48px;
+    background: #FFFFFF;
+    border-radius: 15px;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
     color: #5B5AE0;
-    font-weight: 700;
+    cursor: pointer;
   }
 
   /* ── Pass-through screens (REASSURANCE, READY) ── */
@@ -474,9 +525,8 @@
 
   @media (max-width: 380px) {
     .q-text { font-size: 26px; }
-    .intro-title { font-size: 28px; }
+    .intro-hero-title { font-size: 28px; }
     .screen { padding: 8px 20px 48px; }
-    .intro-screen { padding: 36px 20px 48px; }
     .nav { padding: 44px 16px 16px; }
     .loader-screen { padding: 0 20px 48px; }
     .passthru-screen { padding: 8px 20px 48px; }
@@ -1063,18 +1113,51 @@ function render() {
 
   // ── INTRO ──
   if (id === 'INTRO') {
+    var leafPath = 'M0,0 C-3,-5 -3,-12 0,-16 C3,-12 3,-5 0,0Z';
+    var wreathLeft =
+      '<svg width="39" height="89" viewBox="0 0 39 89" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="' + leafPath + '" transform="translate(31,6) rotate(-55)"  fill="white" opacity=".9"/>' +
+        '<path d="' + leafPath + '" transform="translate(28,17) rotate(-70)" fill="white" opacity=".9"/>' +
+        '<path d="' + leafPath + '" transform="translate(25,29) rotate(-82)" fill="white" opacity=".88"/>' +
+        '<path d="' + leafPath + '" transform="translate(24,41) rotate(-90)" fill="white" opacity=".85"/>' +
+        '<path d="' + leafPath + '" transform="translate(24,53) rotate(-90)" fill="white" opacity=".82"/>' +
+        '<path d="' + leafPath + '" transform="translate(25,65) rotate(-98)" fill="white" opacity=".85"/>' +
+        '<path d="' + leafPath + '" transform="translate(28,76) rotate(-110)" fill="white" opacity=".88"/>' +
+        '<path d="' + leafPath + '" transform="translate(31,86) rotate(-125)" fill="white" opacity=".9"/>' +
+      '</svg>';
+    var wreathRight =
+      '<svg width="39" height="89" viewBox="0 0 39 89" xmlns="http://www.w3.org/2000/svg" style="transform:scaleX(-1)">' +
+        '<path d="' + leafPath + '" transform="translate(31,6) rotate(-55)"  fill="white" opacity=".9"/>' +
+        '<path d="' + leafPath + '" transform="translate(28,17) rotate(-70)" fill="white" opacity=".9"/>' +
+        '<path d="' + leafPath + '" transform="translate(25,29) rotate(-82)" fill="white" opacity=".88"/>' +
+        '<path d="' + leafPath + '" transform="translate(24,41) rotate(-90)" fill="white" opacity=".85"/>' +
+        '<path d="' + leafPath + '" transform="translate(24,53) rotate(-90)" fill="white" opacity=".82"/>' +
+        '<path d="' + leafPath + '" transform="translate(25,65) rotate(-98)" fill="white" opacity=".85"/>' +
+        '<path d="' + leafPath + '" transform="translate(28,76) rotate(-110)" fill="white" opacity=".88"/>' +
+        '<path d="' + leafPath + '" transform="translate(31,86) rotate(-125)" fill="white" opacity=".9"/>' +
+      '</svg>';
+    var stars = '<div class="intro-stars">' +
+      '<div class="intro-star"></div><div class="intro-star"></div><div class="intro-star"></div>' +
+      '<div class="intro-star"></div><div class="intro-star"></div>' +
+      '</div>';
     app.innerHTML =
-      '<div class="intro-screen">' +
-        '<p class="intro-eyebrow">Melba</p>' +
-        '<p class="intro-age">18+ only</p>' +
-        '<h1 class="intro-title">Your best sex yet</h1>' +
-        '<p class="intro-body">30 minutes of expert-guided pleasure, designed exactly for you and your partner. Pick an episode, press play, and a confident voice walks you both through the whole experience.</p>' +
-        '<ul class="steps">' +
-          '<li>Take the 2 minute quiz</li>' +
-          '<li>Get your personalised episode</li>' +
-          '<li>Press play — explicit expert audio guides you both, from start to finish</li>' +
-        '</ul>' +
-        '<button class="cta-btn" onclick="startQuiz()">Find my episode →</button>' +
+      '<div class="intro-hero">' +
+        '<span class="intro-age-badge">18+</span>' +
+        '<h1 class="intro-hero-title">Your best sex yet</h1>' +
+        '<div class="intro-social">' +
+          '<div class="intro-social-row">' +
+            wreathLeft +
+            '<div class="intro-social-center">' +
+              '<div class="intro-social-label">10,000+ couples</div>' +
+              stars +
+              '<div class="intro-rating">&#9829; 4.9</div>' +
+            '</div>' +
+            wreathRight +
+          '</div>' +
+        '</div>' +
+        '<div class="intro-cta-wrap">' +
+          '<button class="intro-cta-white" onclick="startQuiz()">Find my episode →</button>' +
+        '</div>' +
       '</div>';
     return;
   }
