@@ -748,7 +748,7 @@ var state = {
   answered: 0
 };
 
-var history = [];
+var navHistory = [];
 var loaderTimeout = null; // cleared if user navigates away during LOADER
 
 var MAX_QUESTIONS = 8; // Q1 Q2 Q3 INTERESTS [PICK_ONE] DRILL_DOWN HOW_TO_FEEL BLOCKING
@@ -776,7 +776,7 @@ function toggleTopic(key) {
 }
 
 function continueInterests() {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   if (state.selectedTopics.length === 1) {
     state.chosenTopic = state.selectedTopics[0];
@@ -788,14 +788,14 @@ function continueInterests() {
 }
 
 function selectQ(nextId) {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.id = nextId;
   render();
 }
 
 function selectPickOne(topicKey) {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.chosenTopic = topicKey;
   state.id = 'DRILL_DOWN';
@@ -804,7 +804,7 @@ function selectPickOne(topicKey) {
 
 function selectDrill(idx) {
   var opts = DRILL_OPTIONS[state.chosenTopic] || [];
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.drillTag = opts[idx];
   state.id = 'HOW_TO_FEEL';
@@ -813,7 +813,7 @@ function selectDrill(idx) {
 
 // Select how-to-feel option (by index)
 function selectHowToFeel(idx) {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.goalTag = HOW_TO_FEEL_OPTS[idx].tag;
   state.id = 'BLOCKING';
@@ -822,7 +822,7 @@ function selectHowToFeel(idx) {
 
 // v9 change: BLOCKING now routes to PARTNER_TRUST instead of CONF
 function selectBlocking(idx) {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.q5Tag = BLOCKING_OPTS[idx].tag;
   state.id = 'PARTNER_TRUST';
@@ -831,34 +831,34 @@ function selectBlocking(idx) {
 
 // v9 new: continue from PARTNER_TRUST → CONF
 function continuePartnerTrust() {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.id = 'CONF';
   render();
 }
 
 // v9 change: CONF now routes to LOADER instead of directly to result
 function continueConf() {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.id = 'LOADER';
   render();
 }
 
 function goBack() {
   clearLoaderTimeout();
-  if (history.length === 0) return;
-  state = history.pop();
+  if (navHistory.length === 0) return;
+  state = navHistory.pop();
   render();
 }
 
 function restart() {
   clearLoaderTimeout();
-  history = [];
+  navHistory = [];
   state = { id: 'INTRO', selectedTopics: [], chosenTopic: null, drillTag: null, goalTag: null, q5Tag: null, answered: 0 };
   render();
 }
 
 function startQuiz() {
-  history.push(JSON.parse(JSON.stringify(state)));
+  navHistory.push(JSON.parse(JSON.stringify(state)));
   state.id = 'Q1';
   render();
 }
@@ -915,7 +915,7 @@ function beatHtml(beat) {
 function render() {
   var app = document.getElementById('app');
   var id = state.id;
-  var showBack = history.length > 0;
+  var showBack = navHistory.length > 0;
 
   // ── INTRO ──
   if (id === 'INTRO') {
@@ -1113,7 +1113,7 @@ function render() {
   }
 
   // ── LOADER — auto-advancing trust sequence (v9 new screen) ──
-  // Note: LOADER does NOT push a history snapshot on entry (called from continueConf
+  // Note: LOADER does NOT push a navHistory snapshot on entry (called from continueConf
   // which already pushed one). So back from RESULT correctly skips LOADER → CONF.
   if (id === 'LOADER') {
     clearLoaderTimeout();
@@ -1146,7 +1146,7 @@ function render() {
           loaderTimeout = null;
           var topic = TOPICS.find(function(t) { return t.key === state.chosenTopic; });
           state.id = topic ? topic.result : 'RES-MM';
-          render(); // no history push — back from RESULT goes to CONF
+          render(); // no navHistory push — back from RESULT goes to CONF
         }, 1300);
       }, 1300);
     }, 1400);
