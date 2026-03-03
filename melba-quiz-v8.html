@@ -269,9 +269,67 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* ── Intro screen ── */
+  .intro-screen {
+    padding: 56px 24px 48px;
+    animation: fadeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .intro-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5B5AE0;
+    margin-bottom: 16px;
+  }
+
+  .intro-title {
+    font-size: 34px;
+    font-weight: 700;
+    color: #18182B;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .intro-body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #44445C;
+    margin-bottom: 28px;
+  }
+
+  .steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+
+  .steps li {
+    font-size: 15px;
+    font-weight: 500;
+    color: #18182B;
+    line-height: 1.45;
+    padding-left: 28px;
+    position: relative;
+  }
+
+  .steps li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #5B5AE0;
+    font-weight: 700;
+  }
+
   @media (max-width: 380px) {
     .q-text { font-size: 26px; }
+    .intro-title { font-size: 28px; }
     .screen { padding: 8px 20px 48px; }
+    .intro-screen { padding: 44px 20px 48px; }
     .nav { padding: 44px 16px 16px; }
   }
 </style>
@@ -524,14 +582,29 @@ const RESULTS = {
       { tags: ['connection'],                        cta: 'Play tonight →',                 body: "The couples who feel most connected aren't working on many different levels. They talk but they also experience together. This episode is thirty minutes of exactly that. Breath in sync. Full presence. No distractions. The connection it creates tends to outlast the night." }
     ]
   },
-  // ⚠️ PLACEHOLDER — Clare to provide episode name + 4 variants of body copy
   'RES-TOY': {
-    episode: 'The One That Vibes',
+    episode: 'The One That Vibes', // fallback — individual variants override below
     variants: [
-      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',    body: "[ Toys result copy — coming soon. Please provide body copy for letting_go variant. ]" },
-      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',   body: "[ Toys result copy — coming soon. Please provide body copy for openness variant. ]" },
-      { tags: ['novelty','frontier'],                cta: 'Play tonight →',     body: "[ Toys result copy — coming soon. Please provide body copy for novelty variant. ]" },
-      { tags: ['connection'],                        cta: 'Play tonight →',     body: "[ Toys result copy — coming soon. Please provide body copy for connection variant. ]" }
+      // letting_go + connection → The One That Vibes (CONNECTION mood, massage-led, slow build)
+      { tags: ['letting_go','confidence','safety'],
+        episode: 'The One That Vibes',
+        cta: 'Play tonight →',
+        body: "The episode starts with touch — a slow, guided massage that brings her fully into her body before anything else happens. By the time a toy enters the picture, she's relaxed, present, and completely receptive. No pressure to perform. Just sensation, guided by a voice that knows exactly what it's doing." },
+      // openness → The Magic Position (INTENSE mood, specific technique, lower-stakes to start)
+      { tags: ['openness','discovery','comfort'],
+        episode: 'The Magic Position',
+        cta: 'Try it tonight →',
+        body: "You don't have to figure anything out. The episode introduces a specific position and technique — you just follow along. By the time she realises what's happening, she's already enjoying it. The hardest part is pressing play." },
+      // novelty → The Magic Position (new angle + stimulation = completely different experience)
+      { tags: ['novelty','frontier'],
+        episode: 'The Magic Position',
+        cta: 'Play tonight →',
+        body: "Same people. Completely different experience. The Magic Position combines a specific angle with the right kind of stimulation at exactly the right moment. It's not a variation on what you already do — it's a new category. What you discover tonight tends to become a new favourite." },
+      // connection → The One That Vibes (both guided, shared attention on her pleasure)
+      { tags: ['connection'],
+        episode: 'The One That Vibes',
+        cta: 'Play tonight →',
+        body: "A toy isn't a replacement for closeness — in this episode, it's a tool for it. You're both guided through the whole experience together. Her responses become something you're paying attention to as a pair. That shared focus tends to bring couples closer than they expected." }
     ]
   }
 };
@@ -541,7 +614,7 @@ const RESULTS = {
 // ═══════════════════════════════════════════════════════
 
 let state = {
-  id: 'Q1',
+  id: 'INTRO',
   selectedTopics: [],  // multi-select array e.g. ['oral', 'restraint']
   chosenTopic: null,   // resolved single topic after PICK_ONE (or if only 1 selected)
   drillTag: null,      // sub-option label chosen in DRILL_DOWN
@@ -638,7 +711,14 @@ function goBack() {
 
 function restart() {
   history = [];
-  state = { id: 'Q1', selectedTopics: [], chosenTopic: null, drillTag: null, q5Tag: null, answered: 0 };
+  state = { id: 'INTRO', selectedTopics: [], chosenTopic: null, drillTag: null, q5Tag: null, answered: 0 };
+  render();
+}
+
+// Start quiz from intro screen (no answered++ — intro is not a question)
+function startQuiz() {
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.id = 'Q1';
   render();
 }
 
@@ -683,6 +763,23 @@ function render() {
   var app = document.getElementById('app');
   var id = state.id;
   var showBack = history.length > 0;
+
+  // ── INTRO ──
+  if (id === 'INTRO') {
+    app.innerHTML =
+      '<div class="intro-screen">' +
+        '<p class="intro-eyebrow">Melba</p>' +
+        '<h1 class="intro-title">Have the best sex of your life tonight</h1>' +
+        '<p class="intro-body">30 minutes of expert-guided pleasure, designed exactly for you and your partner. Pick an episode, press play, and a confident voice walks you both through the whole experience.</p>' +
+        '<ul class="steps">' +
+          '<li>Take the 2 minute quiz</li>' +
+          '<li>Get your personalised episode</li>' +
+          '<li>Press play — explicit expert audio guides you both, from start to finish</li>' +
+        '</ul>' +
+        '<button class="cta-btn" onclick="startQuiz()">Find my episode →</button>' +
+      '</div>';
+    return;
+  }
 
   // ── EXIT ──
   if (id === 'EXIT') {
