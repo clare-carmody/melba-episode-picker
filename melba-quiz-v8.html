@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Melba — Find Your Episode</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #FEF0EE;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    background: #FEF0EE;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── Nav bar ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    padding: 56px 20px 20px;
+    gap: 14px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    color: #5B5AE0;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .back-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: #E4E2FA;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #5B5AE0;
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 5%;
+  }
+
+  /* ── Screens ── */
+  .screen {
+    padding: 8px 24px 48px;
+    animation: fadeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .q-text {
+    font-size: 30px;
+    font-weight: 700;
+    color: #18182B;
+    line-height: 1.2;
+    margin-bottom: 28px;
+    letter-spacing: -0.3px;
+  }
+
+  .q-subtext {
+    font-size: 15px;
+    color: #7B7B9A;
+    margin-top: -16px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  /* ── Standard single-choice option ── */
+  .opt-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #D4D2F8;
+    border-radius: 16px;
+    padding: 17px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #18182B;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    line-height: 1.4;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .opt-btn:active {
+    background: #F0EFFE;
+    border-color: #5B5AE0;
+    transform: scale(0.985);
+  }
+
+  /* ── Multi-select toggle button ── */
+  .toggle-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #D4D2F8;
+    border-radius: 16px;
+    padding: 17px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #18182B;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    line-height: 1.4;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toggle-btn.selected {
+    background: #EDEEFF;
+    border: 2px solid #5B5AE0;
+  }
+
+  .cta-wrap {
+    margin-top: 24px;
+  }
+
+  /* ── Confirmation ── */
+  .conf-body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #44445C;
+    margin-bottom: 36px;
+  }
+
+  /* ── CTA button ── */
+  .cta-btn {
+    display: block;
+    width: 100%;
+    background: #5B5AE0;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 17px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: 0.01em;
+  }
+
+  .cta-btn:active {
+    background: #4A49C8;
+    transform: scale(0.985);
+  }
+
+  .cta-btn:disabled {
+    background: #C4C3F0;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── Result ── */
+  .res-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5B5AE0;
+    margin-bottom: 10px;
+  }
+
+  .res-title {
+    font-size: 34px;
+    font-weight: 700;
+    color: #18182B;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .res-body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #44445C;
+    margin-bottom: 36px;
+  }
+
+  .res-restart {
+    display: block;
+    margin-top: 16px;
+    background: none;
+    border: 1.5px solid #D4D2F8;
+    border-radius: 16px;
+    padding: 14px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #5B5AE0;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .res-restart:active { background: #F0EFFE; }
+
+  /* ── Exit ── */
+  .exit-wrap {
+    padding: 80px 24px;
+    text-align: center;
+  }
+
+  .exit-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #18182B;
+    margin-bottom: 16px;
+  }
+
+  .exit-body {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #44445C;
+    margin-bottom: 32px;
+  }
+
+  .exit-restart {
+    display: inline-block;
+    background: #5B5AE0;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 380px) {
+    .q-text { font-size: 26px; }
+    .screen { padding: 8px 20px 48px; }
+    .nav { padding: 44px 16px 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// TOPICS — 11 interest categories
+// ═══════════════════════════════════════════════════════
+
+const TOPICS = [
+  { key: 'fantasy',   label: 'Fantasy & role play',     result: 'RES-MM'  },
+  { key: 'oral',      label: 'Oral pleasure',            result: 'RES-HG'  },
+  { key: 'restraint', label: 'Restraint & sensation',    result: 'RES-BHS' },
+  { key: 'positions', label: 'New positions',            result: 'RES-IC'  },
+  { key: 'watching',  label: 'Watching',                 result: 'RES-HOF' },
+  { key: 'power',     label: 'Power exchange',           result: 'RES-MMA' },
+  { key: 'touch',     label: 'Touch & body exploration', result: 'RES-UT'  },
+  { key: 'backdoor',  label: 'Backdoor',                 result: 'RES-PM'  },
+  { key: 'mirrors',   label: 'Mirrors & cameras',        result: 'RES-DMP' },
+  { key: 'slow',      label: 'Slow sex',                 result: 'RES-ASP' },
+  { key: 'toys',      label: 'Toys',                     result: 'RES-TOY' }
+];
+
+// ═══════════════════════════════════════════════════════
+// DRILL-DOWN sub-options per topic (index used for onclick)
+// ═══════════════════════════════════════════════════════
+
+const DRILL_OPTIONS = {
+  fantasy: [
+    'She steps into a character — you lead the scene',
+    "A forbidden scenario you're both playing",
+    'You direct, she performs',
+    'A stranger dynamic — identities blurred'
+  ],
+  oral: [
+    'Deep throat',
+    'Eye contact — watching each other',
+    'Face sitting',
+    'Positions in cunnilingus'
+  ],
+  restraint: [
+    "Blindfold — she can't see, only feel",
+    'Being held or restrained (bondage)',
+    'Temperature play',
+    'Sensory teasing (feather, light touch)'
+  ],
+  positions: [
+    'From behind',
+    'Standing, against a wall',
+    'Using a chair',
+    'Side by side',
+    'Edge of the bed'
+  ],
+  watching: [
+    'She performs for you',
+    'You watch her pleasure herself',
+    'She shows you exactly what she likes',
+    'Mutual voyeurism'
+  ],
+  power: [
+    "I'm taking the lead — she surrenders",
+    "She's in control — you surrender",
+    'Hotwife / cuckolding fantasy',
+    'Threesome fantasy'
+  ],
+  touch: [
+    'Full body massage — slow and devoted',
+    "Exploring erogenous zones she's never had full attention on",
+    'Sensual hand techniques for her',
+    'Body worship'
+  ],
+  backdoor: [
+    'Butt plugs',
+    'Analingus',
+    'Anal fingering',
+    'Anal penetration'
+  ],
+  mirrors: [
+    'Watching each other in a mirror during sex',
+    'Recording and watching back',
+    'New angle on something you already do',
+    'She watches herself in the mirror'
+  ],
+  slow: [
+    'Tantric breathwork together',
+    'Extended arousal — slow build, no rush',
+    'Mindful touch — full presence, every sensation',
+    'Slow intercourse, completely present'
+  ],
+  toys: [
+    'Clitoris stimulation for her',
+    'Internal stimulation for her',
+    'External for me (cock ring etc.)',
+    'Internal for me (prostate)'
+  ]
+};
+
+// ═══════════════════════════════════════════════════════
+// BLOCKING OPTIONS — what's making this harder?
+// ═══════════════════════════════════════════════════════
+
+const BLOCKING_OPTS = [
+  { label: "She'd need to feel safe and free enough to go there",                  tag: 'letting_go' },
+  { label: "Getting started — neither of you wants to be the one to bring it up",  tag: 'openness'   },
+  { label: "Shaking up the routine — you both tend to default to what you know",   tag: 'novelty'    },
+  { label: "Feeling closer first — you want this to bring you together",            tag: 'connection' }
+];
+
+// ═══════════════════════════════════════════════════════
+// GATE SCREENS — Q1 / Q2 / Q3
+// ═══════════════════════════════════════════════════════
+
+const GATE = {
+  'Q1': {
+    q: "What's your gender?",
+    opts: ['Man', 'Woman'],
+    next: ['Q2', 'EXIT']
+  },
+  'Q2': {
+    q: "What's your partner's gender?",
+    opts: ['Female', 'Male'],
+    next: ['Q3', 'EXIT']
+  },
+  'Q3': {
+    q: 'Are you doing this together or on your own?',
+    opts: ['On my own', 'Together'],
+    next: ['INTERESTS', 'EXIT']
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+// CONF COPY — keyed by q5Tag (4 screens, simplified from v6's 16)
+// Source: CONF-A1 / A2 / A3 / A4 body copy from v6
+// ═══════════════════════════════════════════════════════
+
+const CONFS = {
+  letting_go: {
+    body: "A lot of women hold back — not because they don't want to let go, but because no one's ever shown them how. Melba was built for exactly this. A guided voice. Created by women, for women, an experience designed to draw her out, slowly and completely.\n\nNow let's find the perfect first episode for you both.",
+    cta: 'Continue →'
+  },
+  openness: {
+    body: "The hardest part isn't the new thing — it's the conversation before it. With Melba, there's no awkward pitch. You press play. The audio does the work. She's into it before she's had time to overthink it.\n\nNow let's find the perfect first episode for you both.",
+    cta: 'Continue →'
+  },
+  novelty: {
+    body: "Routine isn't a lack of love — it's just what happens when life gets full. Melba gives you a specific thing to do tonight. Not a conversation about what's missing. Just a completely different experience, guided from start to finish.\n\nNow let's find the perfect first episode for you both.",
+    cta: 'Continue →'
+  },
+  connection: {
+    body: "The couples who feel most connected aren't the ones who talk about it more — they're the ones who experience it together. Melba creates those experiences. Intentionally designed to bring you closer in ways that actually last.\n\nNow let's find the perfect first episode for you both.",
+    cta: 'Continue →'
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+// RESULTS — 10 existing episodes × 4 variants + RES-TOY placeholder
+// ═══════════════════════════════════════════════════════
+
+const RESULTS = {
+  'RES-MM': {
+    episode: 'Mystery Man',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',             body: "You already know what you want. The question is getting her there. Fantasy is the answer. When you're both in character, she's not 'herself' which means she can want things she'd never ask for as herself. Mystery Man sets the scene. You lead. She steps into it." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',            body: "You don't have to pitch it. Just say 'want to try something?' and press play. The scenario unfolds on its own…she's in it before she's had time to think about it. No negotiation. No awkwardness. Just a story you're both suddenly living." },
+      { tags: ['novelty','frontier'],                cta: 'Change the script tonight →', body: "Same people. Completely different night. Different characters. Different dynamic. The bedroom suddenly feels like somewhere neither of you has been before. Mystery Man doesn't change what you have, it just makes it new in the best way." },
+      { tags: ['connection'],                        cta: 'Go there together tonight →', body: "There's something unexpectedly intimate about playing together. Sharing a fantasy, even a fictional one, takes a kind of trust that brings you closer. Mystery Man gives you both a way in. The connection that follows tends to surprise people." }
+    ]
+  },
+  'RES-HG': {
+    episode: 'Head Girl',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',        body: "She's guided through exactly what to do — which means she's present, confident, and completely in it. No second-guessing. Just pleasure, with a voice in her ear telling her she's doing everything exactly right." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',       body: "The audio introduces the techniques. She follows the voice. You just enjoy. She doesn't have to decide anything… she just has to listen and do. By the end, she'll have discovered she's extraordinary at this. And she damn well loves it." },
+      { tags: ['novelty','frontier'],                cta: "Tonight's different →",  body: "The guided format takes something familiar and makes it feel entirely new. Different pace. Different techniques. Different level of attention. Head Girl turns something you've done a hundred times into something that feels like the first time it was done properly." },
+      { tags: ['connection'],                        cta: 'Play tonight →',         body: "There's a particular kind of closeness that comes from being completely focused on one person's pleasure. This episode puts her entirely in that space: her attention, her presence, all of it on you. That focus is its own form of intimacy." }
+    ]
+  },
+  'RES-BHS': {
+    episode: 'Beneath Her Sheets',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',                   body: "When she can't see and can't move, the only thing left to do is feel. This episode removes the self-consciousness entirely. She's not watching herself… she's just experiencing. Letting go stops being a choice and starts being the only option." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',                  body: "It starts gently with a blindfold, a change in sensory input. She won't know where it's going until she's already enjoying it. No big conversation needed. You just start, and the episode takes you both somewhere new." },
+      { tags: ['novelty','frontier'],                cta: 'Try something different tonight →', body: "One blindfold changes everything. The same touch feels completely different when she can't anticipate it. Same room. Same hands. Completely different experience. That's one of our tricks, but expertly guided." },
+      { tags: ['connection'],                        cta: 'Play tonight →',                    body: "Vulnerability and trust in the same moment. When she gives up control and you hold that space, something shifts between you. This episode creates an intensity that tends to linger well after it's over." }
+    ]
+  },
+  'RES-IC': {
+    episode: 'In the Corner',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',        body: "A different position creates a different dynamic and a different version of her. She responds differently, moves differently, sounds different. The episode unlocks something the bedroom hasn't seen yet. You're leading. She just has to follow." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',       body: "It's just a new position. Low stakes, high payoff. But what a change. The audio guides you both through it…no choreography required, no awkward pauses. She doesn't have to agree to anything in advance. She just has to show up and enjoy the new angles." },
+      { tags: ['novelty','frontier'],                cta: 'Change it up tonight →', body: "Different wall. Different angle. Different everything. You don't need a new location, just a corner of the room you haven't used yet. In the Corner turns the same bedroom into somewhere that feels genuinely new." },
+      { tags: ['connection'],                        cta: 'Play tonight →',         body: "New positions create new moments, eye contact at a different angle, closeness that feels unexpectedly intimate. You're not just trying something different. You're finding new ways to be deeply close." }
+    ]
+  },
+  'RES-HOF': {
+    episode: 'Her Only Fan',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',             body: "Being watched — really watched — does something to a woman. When she knows all attention is on her, and she's playing a role, she can let go. This episode gives her exactly that in a safe way." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',            body: "She performs. You watch. The audio does the rest. There's nothing to negotiate or plan the episode creates the dynamic on its own. She just follows the voice. You get the show." },
+      { tags: ['novelty','frontier'],                cta: 'Try something new tonight →', body: "Watching instead of doing flips the whole dynamic. New roles. New energy. Same people. It won't feel like your usual night… because it isn't one. Her Only Fan gives you both a completely different way of being together." },
+      { tags: ['connection'],                        cta: 'Play tonight →',              body: "There's an unexpected intimacy in being truly seen and adored. This episode is built entirely around that — her actually performing for the one person whose attention actually matters. Play with the tension of distance and desire while actually building closeness." }
+    ]
+  },
+  'RES-MMA': {
+    episode: 'Master Magician',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',  body: "When you're in control, she doesn't have to think. The audio tells you exactly what to do, which means she can surrender completely, without any of the self-consciousness that usually gets in the way. You lead. She lets go. That's the whole episode." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →', body: "You don't have to bring it up. Just suggest 'something different' and press play. The episode introduces dominance gradually, by the time she realises what's happening, she's already into it. No label needed. Just the experience." },
+      { tags: ['novelty','frontier'],                cta: 'Play tonight →',   body: "A completely different power dynamic changes the entire experience. This isn't a variation on what you already do… it's an entirely new game. Master Magician takes the same two people and puts you both in a dynamic neither of you has tried before." },
+      { tags: ['connection'],                        cta: 'Play tonight →',   body: "Trust is the foundation of dominance and submission. When she gives you control and you hold it well, you build care. The closeness that comes after an episode like this tends to surprise people… it's deeper than expected." }
+    ]
+  },
+  'RES-UT': {
+    episode: 'Uncharted Territories',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',   body: "This episode maps her body systematically — which means her attention is on sensation, not performance. You're both following the audio. She's not thinking about how she looks or what to do next. By the end, she knows things about herself she didn't before." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',  body: "Frame this as an experiment. 'Let's just see what you like.' The audio runs the play by play — you both follow along and pay attention. She's not agreeing to anything radical. She's just letting herself be touched differently." },
+      { tags: ['novelty','frontier'],                cta: 'Explore tonight →', body: "You think you know each other's bodies. This episode will prove you wrong… in the best possible way. Uncharted Territories finds the places neither of you has paid proper attention to yet." },
+      { tags: ['connection'],                        cta: 'Play tonight →',    body: "Learning what your partner actually responds to, really responds to, is one of the most intimate things you can do. This episode makes that happen deliberately. Slowly. With full attention. The kind of closeness it creates isn't just physical." }
+    ]
+  },
+  'RES-PM': {
+    episode: 'Peach Magic',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',    body: "The episode starts with massage and builds at exactly the right pace. By the time anything new happens, she's completely relaxed and receptive. The audio handles the guidance… you just follow along and pay attention to her cues." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',   body: "Don't go straight for the goal. Suggest something slow and indulgent. Peach Magic starts with massage, she'll become relaxed and receptive while still feeling safe to open up or hold boundaries. The audio sets the pace. You just follow it." },
+      { tags: ['novelty','frontier'],                cta: 'Go there tonight →', body: "New territory, explored properly. This is the episode that makes something you've both been curious about actually happen, at exactly the right pace, with no pressure and no guesswork. Just the two of you, going somewhere new." },
+      { tags: ['connection'],                        cta: 'Play tonight →',     body: "Exploring something new together, slowly, safely, with full attention on her — this creates a particular kind of trust. This episode is built around that. What you discover tonight won't just be a new pleasure zone." }
+    ]
+  },
+  'RES-DMP': {
+    episode: 'Double Mirror Play',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',  body: "Watching yourselves let go — really watching — removes the distance between sensation and awareness. She'll be more present in her own body than she's ever been. You'll be enjoying every moment of it." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →', body: "It starts simply, you both watch and show what you like. The audio takes you somewhere neither of you expected from there. She doesn't have to agree to anything in advance, just trust the process." },
+      { tags: ['novelty','frontier'],                cta: 'Try it tonight →', body: "Mirrors change everything. You're doing the same things, but seeing them completely differently. It's a new perspective so nothing feels familiar." },
+      { tags: ['connection'],                        cta: 'Play tonight →',   body: "Being witnessed and witnessing each other creates a closeness that can't be faked. This episode puts you both fully in that space. Seen. Present. Together in a way that doesn't need words." }
+    ]
+  },
+  'RES-ASP': {
+    episode: 'The Art of Staying Present',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',                body: "Slow sex creates the conditions where letting go becomes effortless. No rush. No goal. No performance. Just sensation, breath, and complete attention on each other. She doesn't have to try to let go… she just runs out of reasons not to." },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',               body: "Slowness is the most accessible kind of new. This episode introduces tantric principles without any of the spiritual stuff — just presence, breath, and extended arousal. She won't feel like she's trying something tantra. She'll just feel incredible." },
+      { tags: ['novelty','frontier'],                cta: 'Slow everything down tonight →', body: "Speed is the routine. This episode breaks it completely. Deliberately. Luxuriously. For thirty minutes. The Art of Staying Present takes everything you usually rush through and makes the pleasure in the moment the whole point." },
+      { tags: ['connection'],                        cta: 'Play tonight →',                 body: "The couples who feel most connected aren't working on many different levels. They talk but they also experience together. This episode is thirty minutes of exactly that. Breath in sync. Full presence. No distractions. The connection it creates tends to outlast the night." }
+    ]
+  },
+  // ⚠️ PLACEHOLDER — Clare to provide episode name + 4 variants of body copy
+  'RES-TOY': {
+    episode: 'The One That Vibes',
+    variants: [
+      { tags: ['letting_go','confidence','safety'],  cta: 'Play tonight →',    body: "[ Toys result copy — coming soon. Please provide body copy for letting_go variant. ]" },
+      { tags: ['openness','discovery','comfort'],    cta: 'Try it tonight →',   body: "[ Toys result copy — coming soon. Please provide body copy for openness variant. ]" },
+      { tags: ['novelty','frontier'],                cta: 'Play tonight →',     body: "[ Toys result copy — coming soon. Please provide body copy for novelty variant. ]" },
+      { tags: ['connection'],                        cta: 'Play tonight →',     body: "[ Toys result copy — coming soon. Please provide body copy for connection variant. ]" }
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+let state = {
+  id: 'Q1',
+  selectedTopics: [],  // multi-select array e.g. ['oral', 'restraint']
+  chosenTopic: null,   // resolved single topic after PICK_ONE (or if only 1 selected)
+  drillTag: null,      // sub-option label chosen in DRILL_DOWN
+  q5Tag: null,         // blocker answer
+  answered: 0
+};
+
+let history = [];
+
+const MAX_QUESTIONS = 7; // Q1 Q2 Q3 INTERESTS [PICK_ONE] DRILL_DOWN BLOCKING
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+// Toggle a topic on INTERESTS — updates DOM in place (no re-render, no animation)
+function toggleTopic(key) {
+  const idx = state.selectedTopics.indexOf(key);
+  if (idx === -1) {
+    state.selectedTopics.push(key);
+  } else {
+    state.selectedTopics.splice(idx, 1);
+  }
+  // Update button appearance without triggering fadeSlide
+  document.querySelectorAll('[data-topic]').forEach(function(btn) {
+    btn.classList.toggle('selected', state.selectedTopics.includes(btn.dataset.topic));
+  });
+  var cta = document.getElementById('interests-cta');
+  if (cta) cta.disabled = state.selectedTopics.length === 0;
+}
+
+// Continue from INTERESTS → PICK_ONE or DRILL_DOWN
+function continueInterests() {
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  if (state.selectedTopics.length === 1) {
+    state.chosenTopic = state.selectedTopics[0];
+    state.id = 'DRILL_DOWN';
+  } else {
+    state.id = 'PICK_ONE';
+  }
+  render();
+}
+
+// Standard gate questions Q1 / Q2 / Q3
+function selectQ(nextId) {
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.id = nextId;
+  render();
+}
+
+// Pick one topic from PICK_ONE screen
+function selectPickOne(topicKey) {
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.chosenTopic = topicKey;
+  state.id = 'DRILL_DOWN';
+  render();
+}
+
+// Select drill-down sub-option (by index to avoid quoting issues with apostrophes)
+function selectDrill(idx) {
+  var opts = DRILL_OPTIONS[state.chosenTopic] || [];
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.drillTag = opts[idx];
+  state.id = 'BLOCKING';
+  render();
+}
+
+// Select blocking answer (by index)
+function selectBlocking(idx) {
+  history.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.q5Tag = BLOCKING_OPTS[idx].tag;
+  state.id = 'CONF';
+  render();
+}
+
+// Continue from CONF → episode result
+function continueConf() {
+  history.push(JSON.parse(JSON.stringify(state)));
+  var topic = TOPICS.find(function(t) { return t.key === state.chosenTopic; });
+  state.id = topic ? topic.result : 'RES-MM';
+  render();
+}
+
+function goBack() {
+  if (history.length === 0) return;
+  state = history.pop();
+  render();
+}
+
+function restart() {
+  history = [];
+  state = { id: 'Q1', selectedTopics: [], chosenTopic: null, drillTag: null, q5Tag: null, answered: 0 };
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// RESULT MATCHING
+// ═══════════════════════════════════════════════════════
+
+function resolveResult(baseId) {
+  var res = RESULTS[baseId];
+  if (!res) return null;
+  var tag = state.q5Tag;
+  for (var i = 0; i < res.variants.length; i++) {
+    if (res.variants[i].tags.indexOf(tag) !== -1) {
+      return Object.assign({ episode: res.episode }, res.variants[i]);
+    }
+  }
+  return Object.assign({ episode: res.episode }, res.variants[0]);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+
+function progress() {
+  return Math.max(0.05, Math.min(state.answered / MAX_QUESTIONS, 1));
+}
+
+function navHtml(showBack) {
+  return '<div class="nav">' +
+    '<button class="back-btn" onclick="goBack()" style="' + (showBack ? '' : 'visibility:hidden') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="15 18 9 12 15 6"/>' +
+      '</svg>' +
+    '</button>' +
+    '<div class="progress-track">' +
+      '<div class="progress-fill" style="width:' + (progress() * 100) + '%"></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function render() {
+  var app = document.getElementById('app');
+  var id = state.id;
+  var showBack = history.length > 0;
+
+  // ── EXIT ──
+  if (id === 'EXIT') {
+    app.innerHTML =
+      '<div class="exit-wrap">' +
+        '<h1 class="exit-title">Thanks for your interest</h1>' +
+        '<p class="exit-body">Melba is currently designed for male partners taking the quiz on their own. We hope to expand to more situations soon.</p>' +
+        '<button class="exit-restart" onclick="restart()">Start over</button>' +
+      '</div>';
+    return;
+  }
+
+  // ── RESULT ──
+  if (id.startsWith('RES-')) {
+    var v = resolveResult(id);
+    if (!v) return;
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<p class="res-eyebrow">Your episode</p>' +
+        '<h1 class="res-title">' + v.episode + '</h1>' +
+        '<p class="res-body">' + v.body + '</p>' +
+        '<button class="cta-btn">' + v.cta + '</button>' +
+        '<button class="res-restart" onclick="restart()">Start over</button>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── GATE QUESTIONS: Q1 / Q2 / Q3 ──
+  if (id in GATE) {
+    var screen = GATE[id];
+    var opts = screen.opts.map(function(o, i) {
+      return '<button class="opt-btn" onclick="selectQ(\'' + screen.next[i] + '\')">' + o + '</button>';
+    }).join('');
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">' + screen.q + '</h1>' +
+        '<div class="options">' + opts + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── INTERESTS — multi-select ──
+  if (id === 'INTERESTS') {
+    var toggles = TOPICS.map(function(t) {
+      var sel = state.selectedTopics.indexOf(t.key) !== -1;
+      return '<button class="toggle-btn' + (sel ? ' selected' : '') + '" data-topic="' + t.key + '" onclick="toggleTopic(\'' + t.key + '\')">' + t.label + '</button>';
+    }).join('');
+    var disabled = state.selectedTopics.length === 0;
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">What are you most excited to try?</h1>' +
+        '<p class="q-subtext">Pick everything that appeals — we\'ll help you choose.</p>' +
+        '<div class="options">' + toggles + '</div>' +
+        '<div class="cta-wrap">' +
+          '<button id="interests-cta" class="cta-btn" onclick="continueInterests()"' + (disabled ? ' disabled' : '') + '>Continue →</button>' +
+        '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── PICK ONE — dynamic single choice from selected topics ──
+  if (id === 'PICK_ONE') {
+    var pickOpts = TOPICS
+      .filter(function(t) { return state.selectedTopics.indexOf(t.key) !== -1; })
+      .map(function(t) {
+        return '<button class="opt-btn" onclick="selectPickOne(\'' + t.key + '\')">' + t.label + '</button>';
+      }).join('');
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">Which feels most exciting right now?</h1>' +
+        '<div class="options">' + pickOpts + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── DRILL DOWN — sub-options for chosen topic ──
+  if (id === 'DRILL_DOWN') {
+    var drillOpts = (state.chosenTopic ? DRILL_OPTIONS[state.chosenTopic] : null) || [];
+    var drillButtons = drillOpts.map(function(o, i) {
+      return '<button class="opt-btn" onclick="selectDrill(' + i + ')">' + o + '</button>';
+    }).join('');
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">What specifically appeals to you?</h1>' +
+        '<div class="options">' + drillButtons + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── BLOCKING — what's getting in the way? ──
+  if (id === 'BLOCKING') {
+    var blockOpts = BLOCKING_OPTS.map(function(o, i) {
+      return '<button class="opt-btn" onclick="selectBlocking(' + i + ')">' + o.label + '</button>';
+    }).join('');
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">What would make this easier to actually do?</h1>' +
+        '<div class="options">' + blockOpts + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── CONF — personalised confirmation ──
+  if (id === 'CONF') {
+    var conf = CONFS[state.q5Tag];
+    if (!conf) return;
+    var paras = conf.body.split('\n\n').map(function(p) {
+      return '<p class="conf-body">' + p + '</p>';
+    }).join('');
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        paras +
+        '<button class="cta-btn" onclick="continueConf()">' + conf.cta + '</button>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
