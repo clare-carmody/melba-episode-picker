@@ -768,9 +768,11 @@ function toggleTopic(key) {
   } else {
     state.selectedTopics.splice(idx, 1);
   }
-  document.querySelectorAll('[data-topic]').forEach(function(btn) {
-    btn.classList.toggle('selected', state.selectedTopics.includes(btn.dataset.topic));
-  });
+  var topicBtns = document.querySelectorAll('[data-topic]');
+  for (var i = 0; i < topicBtns.length; i++) {
+    var isSelected = state.selectedTopics.indexOf(topicBtns[i].dataset.topic) !== -1;
+    topicBtns[i].classList.toggle('selected', isSelected);
+  }
   var cta = document.getElementById('interests-cta');
   if (cta) cta.disabled = state.selectedTopics.length === 0;
 }
@@ -1144,7 +1146,8 @@ function render() {
         // Auto-advance to result → after another 1300ms
         loaderTimeout = setTimeout(function() {
           loaderTimeout = null;
-          var topic = TOPICS.find(function(t) { return t.key === state.chosenTopic; });
+          var topic = null;
+          for (var ti = 0; ti < TOPICS.length; ti++) { if (TOPICS[ti].key === state.chosenTopic) { topic = TOPICS[ti]; break; } }
           state.id = topic ? topic.result : 'RES-MM';
           render(); // no navHistory push — back from RESULT goes to CONF
         }, 1300);
