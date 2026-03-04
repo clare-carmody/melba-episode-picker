@@ -845,6 +845,7 @@ var state = {
   chosenTopic: null,
   drillTag: null,
   q5Tag: null,             // set by HOW_TO_FEEL → drives CONF + RESULT
+  resultId: null,          // stored by LOADER → shown after PAYWALL
   answered: 0
 };
 
@@ -1044,6 +1045,12 @@ function continueConf() {
   render();
 }
 
+function continuePaywall() {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.id = state.resultId || 'RES-MM';
+  render();
+}
+
 function goBack() {
   clearLoaderTimeout();
   if (navHistory.length === 0) return;
@@ -1061,7 +1068,7 @@ function restart() {
     blockers: [], priorityAnswer: null,
     tone: null, partnerAwareness: null,
     feelTag: null, selectedTopics: [], chosenTopic: null,
-    drillTag: null, q5Tag: null, answered: 0
+    drillTag: null, q5Tag: null, resultId: null, answered: 0
   };
   render();
 }
@@ -1548,6 +1555,18 @@ function render() {
     return;
   }
 
+  // ── PAYWALL — shown after LOADER, before RESULT ──
+  if (id === 'PAYWALL') {
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="passthru-screen">' +
+        '<h1 class="passthru-headline">Pay now bitch</h1>' +
+        '<button class="cta-btn" onclick="continuePaywall()">Yes Mistress, here are my credit card details</button>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   // ── LOADER — auto-advancing trust sequence ──
   // Note: LOADER does NOT push navHistory on entry (continueConf already did).
   // Back from RESULT correctly jumps to CONF, skipping LOADER.
@@ -1580,7 +1599,8 @@ function render() {
           for (var ti = 0; ti < TOPICS.length; ti++) {
             if (TOPICS[ti].key === state.chosenTopic) { topic = TOPICS[ti]; break; }
           }
-          state.id = topic ? topic.result : 'RES-MM';
+          state.resultId = topic ? topic.result : 'RES-MM';
+          state.id = 'PAYWALL';
           render();
         }, 1300);
       }, 1300);
