@@ -565,9 +565,10 @@ var TOPICS = [
 // ═══════════════════════════════════════════════════════
 
 var LOADER_BEATS = [
-  { icon: '🔬', headline: 'Based on 20 years of research', sub: 'on pleasure and human connection' },
-  { icon: '💬', headline: 'Trusted by over 1 million couples', sub: '★★★★★ 4.7 on the App Store' },
-  { icon: '✨', headline: 'Your episode is ready', sub: "We've found your perfect match" }
+  { image: 'assets/loading-1.webp' },
+  { image: 'assets/loading-2.webp' },
+  { image: 'assets/loading-3.webp' },
+  { image: 'assets/loading-4.webp' }
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -968,11 +969,17 @@ function selectPriority(label) {
 
 function selectReadyYes() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.id = 'INTERESTS';
+  state.id = 'EMAIL_CAPTURE';
   render();
 }
 
 function selectReadyNo() {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.id = 'EMAIL_CAPTURE';
+  render();
+}
+
+function continueEmailCapture() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.id = 'INTERESTS';
   render();
@@ -1117,11 +1124,7 @@ function navHtml(showBack) {
 }
 
 function beatHtml(beat) {
-  return '<div class="loader-beat">' +
-    '<div class="loader-icon">' + beat.icon + '</div>' +
-    '<div class="loader-headline">' + beat.headline + '</div>' +
-    '<div class="loader-sub">' + beat.sub + '</div>' +
-  '</div>';
+  return '<img src="' + beat.image + '" style="width:100%;display:block;" class="loader-beat-img">';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1135,51 +1138,10 @@ function render() {
 
   // ── INTRO ──
   if (id === 'INTRO') {
-    var leafPath = 'M0,0 C-3,-5 -3,-12 0,-16 C3,-12 3,-5 0,0Z';
-    var wreathLeft =
-      '<svg width="39" height="89" viewBox="0 0 39 89" xmlns="http://www.w3.org/2000/svg">' +
-        '<path d="' + leafPath + '" transform="translate(31,6) rotate(-55)"  fill="white" opacity=".9"/>' +
-        '<path d="' + leafPath + '" transform="translate(28,17) rotate(-70)" fill="white" opacity=".9"/>' +
-        '<path d="' + leafPath + '" transform="translate(25,29) rotate(-82)" fill="white" opacity=".88"/>' +
-        '<path d="' + leafPath + '" transform="translate(24,41) rotate(-90)" fill="white" opacity=".85"/>' +
-        '<path d="' + leafPath + '" transform="translate(24,53) rotate(-90)" fill="white" opacity=".82"/>' +
-        '<path d="' + leafPath + '" transform="translate(25,65) rotate(-98)" fill="white" opacity=".85"/>' +
-        '<path d="' + leafPath + '" transform="translate(28,76) rotate(-110)" fill="white" opacity=".88"/>' +
-        '<path d="' + leafPath + '" transform="translate(31,86) rotate(-125)" fill="white" opacity=".9"/>' +
-      '</svg>';
-    var wreathRight =
-      '<svg width="39" height="89" viewBox="0 0 39 89" xmlns="http://www.w3.org/2000/svg" style="transform:scaleX(-1)">' +
-        '<path d="' + leafPath + '" transform="translate(31,6) rotate(-55)"  fill="white" opacity=".9"/>' +
-        '<path d="' + leafPath + '" transform="translate(28,17) rotate(-70)" fill="white" opacity=".9"/>' +
-        '<path d="' + leafPath + '" transform="translate(25,29) rotate(-82)" fill="white" opacity=".88"/>' +
-        '<path d="' + leafPath + '" transform="translate(24,41) rotate(-90)" fill="white" opacity=".85"/>' +
-        '<path d="' + leafPath + '" transform="translate(24,53) rotate(-90)" fill="white" opacity=".82"/>' +
-        '<path d="' + leafPath + '" transform="translate(25,65) rotate(-98)" fill="white" opacity=".85"/>' +
-        '<path d="' + leafPath + '" transform="translate(28,76) rotate(-110)" fill="white" opacity=".88"/>' +
-        '<path d="' + leafPath + '" transform="translate(31,86) rotate(-125)" fill="white" opacity=".9"/>' +
-      '</svg>';
-    var stars = '<div class="intro-stars">' +
-      '<div class="intro-star"></div><div class="intro-star"></div><div class="intro-star"></div>' +
-      '<div class="intro-star"></div><div class="intro-star"></div>' +
-      '</div>';
     app.innerHTML =
-      '<div class="intro-hero">' +
-        '<span class="intro-age-badge">18+</span>' +
-        '<h1 class="intro-hero-title">Get wilder in bed together</h1>' +
-        '<div class="intro-social">' +
-          '<div class="intro-social-row">' +
-            wreathLeft +
-            '<div class="intro-social-center">' +
-              '<div class="intro-social-label">10,000+ couples</div>' +
-              stars +
-              '<div class="intro-rating">&#9829; 4.9</div>' +
-            '</div>' +
-            wreathRight +
-          '</div>' +
-        '</div>' +
-        '<div class="intro-cta-wrap">' +
-          '<button class="intro-cta-white" onclick="startQuiz()">Find my episode →</button>' +
-        '</div>' +
+      '<div style="position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="startQuiz()">' +
+        '<img src="assets/hero.webp" style="width:100%;display:block;">' +
+        '<div style="position:absolute;bottom:5.5%;left:4%;width:92%;height:7%;"></div>' +
       '</div>';
     return;
   }
@@ -1367,11 +1329,9 @@ function render() {
   // ── REASSURANCE — openness pass-through (no answered++) ──
   if (id === 'REASSURANCE') {
     app.innerHTML =
-      navHtml(showBack) +
-      '<div class="passthru-screen">' +
-        '<p class="passthru-sub">We know it might seem weird in theory to be guided by a voice</p>' +
-        '<h1 class="passthru-headline">In fact, our expert-led sessions are very customisable and can meet your needs.</h1>' +
-        '<button class="cta-btn" onclick="continueReassurance()">Got it →</button>' +
+      '<div style="position:relative;-webkit-tap-highlight-color:transparent;" onclick="continueReassurance()">' +
+        '<img src="assets/reassurance.webp" style="width:100%;display:block;">' +
+        '<div style="position:absolute;bottom:3%;left:4%;width:92%;height:8%;"></div>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1555,6 +1515,17 @@ function render() {
     return;
   }
 
+  // ── EMAIL_CAPTURE — after READY, before INTERESTS (no answered++) ──
+  if (id === 'EMAIL_CAPTURE') {
+    app.innerHTML =
+      '<div style="position:relative;-webkit-tap-highlight-color:transparent;" onclick="continueEmailCapture()">' +
+        '<img src="assets/email-capture.webp" style="width:100%;display:block;">' +
+        '<div style="position:absolute;bottom:3%;left:4%;width:92%;height:8%;"></div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   // ── PAYWALL — shown after LOADER, before RESULT ──
   if (id === 'PAYWALL') {
     app.innerHTML =
@@ -1574,18 +1545,7 @@ function render() {
     clearLoaderTimeout();
 
     app.innerHTML =
-      navHtml(showBack) +
-      '<div class="loader-screen">' +
-        '<div class="loader-bar-track"><div class="loader-bar-fill" id="loader-bar"></div></div>' +
-        '<div id="loader-content">' + beatHtml(LOADER_BEATS[0]) + '</div>' +
-      '</div>';
-
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        var bar = document.getElementById('loader-bar');
-        if (bar) bar.style.width = '100%';
-      });
-    });
+      '<div id="loader-content" style="width:100%;">' + beatHtml(LOADER_BEATS[0]) + '</div>';
 
     loaderTimeout = setTimeout(function() {
       var c = document.getElementById('loader-content');
@@ -1594,14 +1554,18 @@ function render() {
         var c2 = document.getElementById('loader-content');
         if (c2) c2.innerHTML = beatHtml(LOADER_BEATS[2]);
         loaderTimeout = setTimeout(function() {
-          loaderTimeout = null;
-          var topic = null;
-          for (var ti = 0; ti < TOPICS.length; ti++) {
-            if (TOPICS[ti].key === state.chosenTopic) { topic = TOPICS[ti]; break; }
-          }
-          state.resultId = topic ? topic.result : 'RES-MM';
-          state.id = 'PAYWALL';
-          render();
+          var c3 = document.getElementById('loader-content');
+          if (c3) c3.innerHTML = beatHtml(LOADER_BEATS[3]);
+          loaderTimeout = setTimeout(function() {
+            loaderTimeout = null;
+            var topic = null;
+            for (var ti = 0; ti < TOPICS.length; ti++) {
+              if (TOPICS[ti].key === state.chosenTopic) { topic = TOPICS[ti]; break; }
+            }
+            state.resultId = topic ? topic.result : 'RES-MM';
+            state.id = 'PAYWALL';
+            render();
+          }, 1300);
         }, 1300);
       }, 1300);
     }, 1400);
