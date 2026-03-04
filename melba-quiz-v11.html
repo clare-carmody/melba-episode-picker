@@ -544,20 +544,38 @@
 // ═══════════════════════════════════════════════════════
 
 var TOPICS = [
-  { key: 'fantasy',   label: 'Fantasy & role play',       result: 'RES-MM'  },
-  { key: 'oral',      label: 'Oral pleasure',              result: 'RES-HG'  },
-  { key: 'restraint', label: 'Restraint & sensation',      result: 'RES-BHS' },
-  { key: 'positions', label: 'New positions',              result: 'RES-IC'  },
-  { key: 'watching',  label: 'Watching',                   result: 'RES-HOF' },
-  { key: 'power',     label: 'Power exchange',             result: 'RES-MMA' },
-  { key: 'touch',     label: 'Touch & body exploration',   result: 'RES-UT'  },
-  { key: 'backdoor',  label: 'Backdoor',                   result: 'RES-PM'  },
-  { key: 'mirrors',   label: 'Mirrors & cameras',          result: 'RES-DMP' },
-  { key: 'slow',      label: 'Slow sex',                   result: 'RES-ASP' },
-  { key: 'toys',      label: 'Toys',                       result: 'RES-TOY' },
-  { key: 'dirtytalk', label: 'Dirty talk',                 result: 'RES-MMA' },
-  { key: 'roughsex',  label: 'Rough sex',                  result: 'RES-BHS' },
-  { key: 'groupplay', label: 'Threesome or group play',    result: 'RES-MMA' }
+  { key: 'fantasy',   label: 'Fantasy & role play',       result: 'RES-MM'   },
+  { key: 'oral',      label: 'Oral pleasure',              result: 'RES-HG'   },
+  { key: 'restraint', label: 'Restraint & sensation',      result: 'RES-BHS'  },
+  { key: 'positions', label: 'New positions',              result: 'RES-IC'   },
+  { key: 'watching',  label: 'Watching',                   result: 'RES-DMP'  },
+  { key: 'power',     label: 'Power exchange',             result: 'RES-MMA'  },
+  { key: 'touch',     label: 'Touch & body exploration',   result: 'RES-BHS'  },
+  { key: 'backdoor',  label: 'Backdoor',                   result: 'RES-TOG'  },
+  { key: 'mirrors',   label: 'Mirrors & cameras',          result: 'RES-DMP'  },
+  { key: 'slow',      label: 'Slow sex',                   result: 'RES-BHS'  },
+  { key: 'toys',      label: 'Toys',                       result: 'RES-MMA'  },
+  { key: 'dirtytalk', label: 'Dirty talk',                 result: 'RES-MM'   },
+  { key: 'roughsex',  label: 'Rough sex',                  result: 'RES-MMA'  },
+  { key: 'groupplay', label: 'Threesome or group play',    result: 'RES-BTT'  }
+];
+
+// ═══════════════════════════════════════════════════════
+// EPISODES — 11 episodes with images
+// ═══════════════════════════════════════════════════════
+
+var EPISODES = [
+  { id: 'RES-MM',   name: 'Mystery Man',             image: 'assets/ep-mystery-man.png',        topics: ['fantasy', 'power', 'dirtytalk']    },
+  { id: 'RES-HG',   name: 'Head Girl',               image: 'assets/ep-head-girl.png',          topics: ['oral', 'touch']                    },
+  { id: 'RES-BHA',  name: 'Blow Him Away',           image: 'assets/ep-blow-him-away.png',      topics: ['oral']                             },
+  { id: 'RES-DT',   name: 'Deepthroat 101',          image: 'assets/ep-deepthroat-101.png',     topics: ['oral']                             },
+  { id: 'RES-BHS',  name: 'Beneath Her Sheets',      image: 'assets/ep-beneath-her-sheets.png', topics: ['restraint', 'roughsex', 'slow', 'touch'] },
+  { id: 'RES-IC',   name: 'In the Corner',           image: 'assets/ep-in-the-corner.png',      topics: ['positions']                        },
+  { id: 'RES-DMP',  name: 'Double Mirror Game',      image: 'assets/ep-double-mirror-game.png', topics: ['mirrors', 'watching']              },
+  { id: 'RES-MMA',  name: 'Master Magician',         image: 'assets/ep-master-magician.png',    topics: ['power', 'toys', 'roughsex']        },
+  { id: 'RES-TOG',  name: 'The One Who Gives',       image: 'assets/ep-the-one-who-gives.png',  topics: ['backdoor']                         },
+  { id: 'RES-BTT',  name: 'Between the Three of Us', image: 'assets/ep-between-the-three.png',  topics: ['groupplay']                        },
+  { id: 'RES-TGAG', name: 'Two Girls and a Guy',     image: 'assets/ep-two-girls-and-a-guy.png', topics: ['groupplay']                       }
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -846,7 +864,9 @@ var state = {
   chosenTopic: null,
   drillTag: null,
   q5Tag: null,             // set by HOW_TO_FEEL → drives CONF + RESULT
-  resultId: null,          // stored by LOADER → shown after PAYWALL
+  resultId: null,          // primary matched episode
+  episodeOrder: [],        // all episode IDs, best match first
+  episodeIndex: 0,         // which episode is showing in carousel
   email: null,             // EMAIL_CAPTURE
   answered: 0
 };
@@ -1066,8 +1086,16 @@ function continueConf() {
 
 function continuePaywall() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.id = state.resultId || 'RES-MM';
+  state.id = 'RESULT';
   render();
+}
+
+function prevEpisode() {
+  if (state.episodeIndex > 0) { state.episodeIndex--; render(); }
+}
+
+function nextEpisode() {
+  if (state.episodeIndex < state.episodeOrder.length - 1) { state.episodeIndex++; render(); }
 }
 
 function goBack() {
@@ -1087,7 +1115,7 @@ function restart() {
     blockers: [], priorityAnswer: null,
     tone: null, partnerAwareness: null,
     feelTag: null, selectedTopics: [], chosenTopic: null,
-    drillTag: null, q5Tag: null, resultId: null, email: null, answered: 0
+    drillTag: null, q5Tag: null, resultId: null, episodeOrder: [], episodeIndex: 0, email: null, answered: 0
   };
   render();
 }
@@ -1136,7 +1164,9 @@ function navHtml(showBack) {
 }
 
 function beatHtml(beat) {
-  return '<img src="' + beat.image + '" style="width:100%;display:block;" class="loader-beat-img">';
+  return '<div style="height:100svh;height:100vh;overflow:hidden;">' +
+    '<img src="' + beat.image + '" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">' +
+    '</div>';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1151,26 +1181,40 @@ function render() {
   // ── INTRO ──
   if (id === 'INTRO') {
     app.innerHTML =
-      '<div style="position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="startQuiz()">' +
-        '<img src="assets/hero.webp" style="width:100%;display:block;">' +
-        '<div style="position:absolute;bottom:5.5%;left:4%;width:92%;height:7%;"></div>' +
+      '<div style="position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;height:100svh;height:100vh;overflow:hidden;" onclick="startQuiz()">' +
+        '<img src="assets/hero.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">' +
       '</div>';
     return;
   }
 
-  // ── RESULT ──
-  if (id.indexOf('RES-') === 0) {
-    var v = resolveResult(id);
-    if (!v) return;
+  // ── RESULT — episode image carousel ──
+  if (id === 'RESULT') {
+    var order = state.episodeOrder.length ? state.episodeOrder : [state.resultId || 'RES-MM'];
+    var idx = state.episodeIndex || 0;
+    var ep = null;
+    for (var ei = 0; ei < EPISODES.length; ei++) {
+      if (EPISODES[ei].id === order[idx]) { ep = EPISODES[ei]; break; }
+    }
+    if (!ep) ep = EPISODES[0];
+    var isMatch = idx === 0;
+    var hasPrev = idx > 0;
+    var hasNext = idx < order.length - 1;
     app.innerHTML =
       navHtml(showBack) +
-      '<div class="screen">' +
-        '<p class="res-eyebrow">Your episode</p>' +
-        '<h1 class="res-title">' + v.episode + '</h1>' +
-        '<p class="res-body">' + v.body + '</p>' +
-        '<button class="cta-btn">' + v.cta + '</button>' +
-        '<p class="res-footer">This is only the beginning. The one experience we recommend is one of hundreds on offer.</p>' +
-        '<button class="res-restart" onclick="restart()">Start over</button>' +
+      '<div style="padding:0 20px 32px;">' +
+        '<p style="font-size:13px;font-weight:600;color:' + (isMatch ? '#5B5AE0' : '#7B7B9A') + ';letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">' +
+          (isMatch ? '✨ Your perfect match' : 'Also recommended') +
+        '</p>' +
+        '<div style="border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,0,0,.12);">' +
+          '<img src="' + ep.image + '" style="width:100%;height:62svh;object-fit:cover;object-position:top;display:block;">' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;">' +
+          '<button onclick="prevEpisode()" ' + (!hasPrev ? 'disabled' : '') + ' style="width:44px;height:44px;border-radius:50%;border:1.5px solid #E4E2FA;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#5B5AE0;' + (!hasPrev ? 'opacity:.3;' : '') + '">←</button>' +
+          '<span style="font-size:13px;color:#7B7B9A;">' + (idx + 1) + ' of ' + order.length + '</span>' +
+          '<button onclick="nextEpisode()" ' + (!hasNext ? 'disabled' : '') + ' style="width:44px;height:44px;border-radius:50%;border:1.5px solid #E4E2FA;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#5B5AE0;' + (!hasNext ? 'opacity:.3;' : '') + '">→</button>' +
+        '</div>' +
+        '<button class="cta-btn">▶  Start guided experience</button>' +
+        '<button class="res-restart" onclick="restart()" style="display:block;margin:16px auto 0;background:none;border:none;color:#7B7B9A;font-size:14px;cursor:pointer;">Start over</button>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1341,9 +1385,8 @@ function render() {
   // ── REASSURANCE — openness pass-through (no answered++) ──
   if (id === 'REASSURANCE') {
     app.innerHTML =
-      '<div style="position:relative;-webkit-tap-highlight-color:transparent;" onclick="continueReassurance()">' +
-        '<img src="assets/reassurance.webp" style="width:100%;display:block;">' +
-        '<div style="position:absolute;bottom:3%;left:4%;width:92%;height:8%;"></div>' +
+      '<div style="position:relative;-webkit-tap-highlight-color:transparent;height:100svh;height:100vh;overflow:hidden;cursor:pointer;" onclick="continueReassurance()">' +
+        '<img src="assets/reassurance.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1590,6 +1633,13 @@ function render() {
               if (TOPICS[ti].key === state.chosenTopic) { topic = TOPICS[ti]; break; }
             }
             state.resultId = topic ? topic.result : 'RES-MM';
+            // Build episode order: matched first, then all others
+            var order = [state.resultId];
+            for (var ei = 0; ei < EPISODES.length; ei++) {
+              if (EPISODES[ei].id !== state.resultId) order.push(EPISODES[ei].id);
+            }
+            state.episodeOrder = order;
+            state.episodeIndex = 0;
             state.id = 'PAYWALL';
             render();
           }, 1300);
