@@ -921,7 +921,7 @@ function selectGoal(tag) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.openingGoal = tag;
-  state.id = 'Q_OPENNESS';
+  state.id = 'Q_INITIATE';
   render();
 }
 
@@ -929,7 +929,7 @@ function selectOpenness(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.openness = label;
-  state.id = 'Q_INITIATE';
+  state.id = 'REASSURANCE';
   render();
 }
 
@@ -961,7 +961,19 @@ function selectPriority(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.priorityAnswer = label;
-  state.id = 'REASSURANCE';
+  state.id = 'READY';
+  render();
+}
+
+function selectReadyYes() {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.id = 'INTERESTS';
+  render();
+}
+
+function selectReadyNo() {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.id = 'INTERESTS';
   render();
 }
 
@@ -975,7 +987,7 @@ function selectTone(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.tone = label;
-  state.id = 'INTERESTS';
+  state.id = 'HOW_TO_FEEL';
   render();
 }
 
@@ -1006,13 +1018,13 @@ function selectPartner(label) {
 
 function continueSocialProof() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.id = 'READY';
+  state.id = 'Q_OPENNESS';
   render();
 }
 
 function continueReady() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.id = 'HOW_TO_FEEL';
+  state.id = 'INTERESTS';
   render();
 }
 
@@ -1200,7 +1212,7 @@ function render() {
     app.innerHTML =
       navHtml(showBack) +
       '<div class="screen">' +
-        '<h1 class="q-text">What are you looking for tonight?</h1>' +
+        '<h1 class="q-text">How can Melba enhance your sex life?</h1>' +
         '<p class="q-subtext">Your answers stay private — they only help us choose your 30-minute adventure.</p>' +
         '<div class="options">' + goalBtns + '</div>' +
       '</div>';
@@ -1345,14 +1357,14 @@ function render() {
     return;
   }
 
-  // ── REASSURANCE — pass-through (no answered++) ──
+  // ── REASSURANCE — openness pass-through (no answered++) ──
   if (id === 'REASSURANCE') {
     app.innerHTML =
       navHtml(showBack) +
       '<div class="passthru-screen">' +
-        '<p class="passthru-sub">You just need a little push to play.</p>' +
-        '<p class="passthru-body">Melba helps you connect — or spice up, try new things, or get kinky — in 20–30 minutes, once a week.</p>' +
-        '<button class="cta-btn" onclick="continueReassurance()">Continue →</button>' +
+        '<p class="passthru-sub">We know it might seem weird in theory to be guided by a voice</p>' +
+        '<h1 class="passthru-headline">In fact, our expert-led sessions are very customisable and can meet your needs.</h1>' +
+        '<button class="cta-btn" onclick="continueReassurance()">Got it →</button>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1486,18 +1498,16 @@ function render() {
     return;
   }
 
-  // ── READY — pass-through before HOW_TO_FEEL (no answered++) ──
+  // ── READY — Melba intro + Yes/No gate (no answered++) ──
   if (id === 'READY') {
     app.innerHTML =
       navHtml(showBack) +
       '<div class="passthru-screen">' +
-        '<h1 class="passthru-headline">Ready to curate your first experience?</h1>' +
-        '<p class="passthru-body">You\'re 30 seconds away from 30 minutes of pleasure.</p>' +
-        '<div class="passthru-stat">' +
-          '<div class="passthru-stat-num">2.5×</div>' +
-          '<div class="passthru-stat-label">Couples who use Melba explore more together</div>' +
-        '</div>' +
-        '<button class="cta-btn" onclick="continueReady()">Let\'s go →</button>' +
+        '<p class="passthru-sub">Melba has helped over 1 million couples go further in bed</p>' +
+        '<h1 class="passthru-headline">Imagine — you\'re being guided by an expert voice. All you have to do is press play and follow the instructions through 30 minutes of sexploration.</h1>' +
+        '<p class="passthru-body">Ready to curate your first experience? You\'re 30 seconds away from 30 minutes of pleasure.</p>' +
+        '<button class="cta-btn" onclick="selectReadyYes()">Yes!</button>' +
+        '<button class="opt-btn" style="margin-top:12px" onclick="selectReadyNo()">No I\'m not open to adventure</button>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
