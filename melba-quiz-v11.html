@@ -831,21 +831,20 @@ var RESULTS = {
 
 var state = {
   id: 'INTRO',
-  // New fields (v10)
   openingGoal: null,       // Q_GOAL
   openness: null,          // Q_OPENNESS
   initiate: null,          // Q_INITIATE
-  insecurities: null,      // Q_INSECURITIES
+  wishAnswer: null,        // Q_WISH
+  imaginationAnswer: null, // Q_IMAGINATION
   blockers: [],            // Q_BLOCKERS (array)
+  priorityAnswer: null,    // Q_PRIORITY
   tone: null,              // Q_TONE
-  intensity: null,         // Q_INTENSITY
   partnerAwareness: null,  // Q_PARTNER
-  feelTag: null,           // HOW_TO_FEEL (was goalTag in v9)
-  // Unchanged from v9
+  feelTag: null,           // HOW_TO_FEEL
   selectedTopics: [],
   chosenTopic: null,
   drillTag: null,
-  q5Tag: null,             // BLOCKING → drives CONF + RESULT
+  q5Tag: null,             // set by HOW_TO_FEEL → drives CONF + RESULT
   answered: 0
 };
 
@@ -853,9 +852,9 @@ var navHistory = [];
 var loaderTimeout = null;
 
 var MAX_QUESTIONS = 13;
-// Q_GOAL, Q_OPENNESS, Q_INITIATE, Q_INSECURITIES, Q_BLOCKERS,
-// Q_TONE, Q_INTENSITY, INTERESTS, [PICK_ONE], DRILL_DOWN,
-// Q_PARTNER, BLOCKING, HOW_TO_FEEL
+// Q_GOAL, Q_OPENNESS, Q_INITIATE, Q_WISH, Q_IMAGINATION, Q_BLOCKERS,
+// Q_PRIORITY, Q_TONE, INTERESTS, [PICK_ONE], DRILL_DOWN,
+// Q_PARTNER, HOW_TO_FEEL
 
 // ═══════════════════════════════════════════════════════
 // NAVIGATION HELPERS
@@ -883,7 +882,7 @@ function toggleBlocker(key) {
 function continueBlockers() {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
-  state.id = 'REASSURANCE';
+  state.id = 'Q_PRIORITY';
   render();
 }
 
@@ -938,15 +937,31 @@ function selectInitiate(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.initiate = label;
-  state.id = 'Q_INSECURITIES';
+  state.id = 'Q_WISH';
   render();
 }
 
-function selectInsecurities(label) {
+function selectWish(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
-  state.insecurities = label;
+  state.wishAnswer = label;
+  state.id = 'Q_IMAGINATION';
+  render();
+}
+
+function selectImagination(label) {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.imaginationAnswer = label;
   state.id = 'Q_BLOCKERS';
+  render();
+}
+
+function selectPriority(label) {
+  navHistory.push(JSON.parse(JSON.stringify(state)));
+  state.answered++;
+  state.priorityAnswer = label;
+  state.id = 'REASSURANCE';
   render();
 }
 
@@ -960,14 +975,6 @@ function selectTone(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.tone = label;
-  state.id = 'Q_INTENSITY';
-  render();
-}
-
-function selectIntensity(label) {
-  navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.answered++;
-  state.intensity = label;
   state.id = 'INTERESTS';
   render();
 }
@@ -993,14 +1000,6 @@ function selectPartner(label) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.partnerAwareness = label;
-  state.id = 'BLOCKING';
-  render();
-}
-
-function selectBlocking(idx) {
-  navHistory.push(JSON.parse(JSON.stringify(state)));
-  state.answered++;
-  state.q5Tag = BLOCKING_OPTS[idx].tag;
   state.id = 'SOCIAL_PROOF';
   render();
 }
@@ -1021,6 +1020,8 @@ function selectHowToFeel(idx) {
   navHistory.push(JSON.parse(JSON.stringify(state)));
   state.answered++;
   state.feelTag = HOW_TO_FEEL_OPTS[idx].tag;
+  var feelMap = { pleasure_god: 'letting_go', blissed_out: 'letting_go', connected: 'connection', curious: 'openness' };
+  state.q5Tag = feelMap[state.feelTag] || 'letting_go';
   state.id = 'CONF';
   render();
 }
@@ -1043,8 +1044,10 @@ function restart() {
   navHistory = [];
   state = {
     id: 'INTRO',
-    openingGoal: null, openness: null, initiate: null, insecurities: null,
-    blockers: [], tone: null, intensity: null, partnerAwareness: null,
+    openingGoal: null, openness: null, initiate: null,
+    wishAnswer: null, imaginationAnswer: null,
+    blockers: [], priorityAnswer: null,
+    tone: null, partnerAwareness: null,
     feelTag: null, selectedTopics: [], chosenTopic: null,
     drillTag: null, q5Tag: null, answered: 0
   };
@@ -1143,7 +1146,7 @@ function render() {
     app.innerHTML =
       '<div class="intro-hero">' +
         '<span class="intro-age-badge">18+</span>' +
-        '<h1 class="intro-hero-title">Your best sex yet</h1>' +
+        '<h1 class="intro-hero-title">Get wilder in bed together</h1>' +
         '<div class="intro-social">' +
           '<div class="intro-social-row">' +
             wreathLeft +
@@ -1229,7 +1232,7 @@ function render() {
 
   // ── Q_INITIATE — Who tends to be leading in bed? ──
   if (id === 'Q_INITIATE') {
-    var initiateOpts = ['Me', 'My partner', 'Both', 'It varies'];
+    var initiateOpts = ['Me', 'My partner', 'Both'];
     var initiateBtns = '';
     for (var ii = 0; ii < initiateOpts.length; ii++) {
       initiateBtns += '<button class="opt-btn" onclick="selectInitiate(\'' + initiateOpts[ii] + '\')">' + initiateOpts[ii] + '</button>';
@@ -1244,19 +1247,46 @@ function render() {
     return;
   }
 
-  // ── Q_INSECURITIES — Do body insecurities hold either of you back? ──
-  if (id === 'Q_INSECURITIES') {
-    var insecOpts = ["Mine", "My partner's", 'Both', 'No insecurities'];
-    var insecBtns = '';
-    for (var si = 0; si < insecOpts.length; si++) {
-      insecBtns += '<button class="opt-btn" onclick="selectInsecurities(\'' + insecOpts[si].replace(/'/g, "\\'") + '\')">' + insecOpts[si] + '</button>';
+  // ── Q_WISH — You wish your partner would: ──
+  if (id === 'Q_WISH') {
+    var wishOpts = [
+      'Initiate more often',
+      'Be more open to your suggestions',
+      'Be clear about what they want',
+      'Let go in bed',
+      'Practice new technical skills'
+    ];
+    var wishBtns = '';
+    for (var wi = 0; wi < wishOpts.length; wi++) {
+      wishBtns += '<button class="opt-btn" onclick="selectWish(\'' + wishOpts[wi].replace(/'/g, "\\'") + '\')">' + wishOpts[wi] + '</button>';
     }
     app.innerHTML =
       navHtml(showBack) +
       '<div class="screen">' +
-        '<h1 class="q-text">Do body insecurities hold either of you back?</h1>' +
-        '<p class="q-subtext">Many people feel this. It doesn\'t mean desire is gone.</p>' +
-        '<div class="options">' + insecBtns + '</div>' +
+        '<h1 class="q-text">You wish your partner would:</h1>' +
+        '<div class="options">' + wishBtns + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ── Q_IMAGINATION — How active is your erotic imagination? ──
+  if (id === 'Q_IMAGINATION') {
+    var imagOpts = [
+      "I'm open to inspiration",
+      "I have a few specific fantasies I'd really like to try",
+      "You have no idea how deep this rabbit hole goes…",
+      "My mind is pornhub"
+    ];
+    var imagBtns = '';
+    for (var imi = 0; imi < imagOpts.length; imi++) {
+      imagBtns += '<button class="opt-btn" onclick="selectImagination(\'' + imagOpts[imi].replace(/'/g, "\\'") + '\')">' + imagOpts[imi] + '</button>';
+    }
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">How active is your erotic imagination?</h1>' +
+        '<div class="options">' + imagBtns + '</div>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1293,6 +1323,28 @@ function render() {
     return;
   }
 
+  // ── Q_PRIORITY — In an ideal world you would be prioritizing sex: ──
+  if (id === 'Q_PRIORITY') {
+    var priorityOpts = [
+      'Less',
+      'About the same',
+      'More often',
+      "It's not about frequency, but quality"
+    ];
+    var priorityBtns = '';
+    for (var pri = 0; pri < priorityOpts.length; pri++) {
+      priorityBtns += '<button class="opt-btn" onclick="selectPriority(\'' + priorityOpts[pri].replace(/'/g, "\\'") + '\')">' + priorityOpts[pri] + '</button>';
+    }
+    app.innerHTML =
+      navHtml(showBack) +
+      '<div class="screen">' +
+        '<h1 class="q-text">In an ideal world you would be prioritizing sex:</h1>' +
+        '<div class="options">' + priorityBtns + '</div>' +
+      '</div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   // ── REASSURANCE — pass-through (no answered++) ──
   if (id === 'REASSURANCE') {
     app.innerHTML =
@@ -1319,24 +1371,6 @@ function render() {
       '<div class="screen">' +
         '<h1 class="q-text">What\'s your preferred experience tone?</h1>' +
         '<div class="options">' + toneBtns + '</div>' +
-      '</div>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-
-  // ── Q_INTENSITY — how far do you want to go? ──
-  if (id === 'Q_INTENSITY') {
-    var intensityOpts = ['Romantic', 'Make it sensual', 'Make it playful', 'Pretty spicy', 'Hardcore'];
-    var intensityBtns = '';
-    for (var ni = 0; ni < intensityOpts.length; ni++) {
-      intensityBtns += '<button class="opt-btn" onclick="selectIntensity(\'' + intensityOpts[ni].replace(/'/g, "\\'") + '\')">' + intensityOpts[ni] + '</button>';
-    }
-    app.innerHTML =
-      navHtml(showBack) +
-      '<div class="screen">' +
-        '<h1 class="q-text">How far do you want to go with your experience?</h1>' +
-        '<p class="q-subtext">You can always go further later.</p>' +
-        '<div class="options">' + intensityBtns + '</div>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -1415,22 +1449,6 @@ function render() {
       '<div class="screen">' +
         '<h1 class="q-text">Does your partner know you\'re into this?</h1>' +
         '<div class="options">' + partnerBtns + '</div>' +
-      '</div>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-
-  // ── BLOCKING — what would make this easier? ──
-  if (id === 'BLOCKING') {
-    var blockOpts = '';
-    for (var bli = 0; bli < BLOCKING_OPTS.length; bli++) {
-      blockOpts += '<button class="opt-btn" onclick="selectBlocking(' + bli + ')">' + BLOCKING_OPTS[bli].label + '</button>';
-    }
-    app.innerHTML =
-      navHtml(showBack) +
-      '<div class="screen">' +
-        '<h1 class="q-text">What would make this easier to actually do?</h1>' +
-        '<div class="options">' + blockOpts + '</div>' +
       '</div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
